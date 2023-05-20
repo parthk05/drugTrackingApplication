@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+</head>
+<body>
+    <h1>Manufacturer Form or interface</h1>
+    <script>
+        $(document).ready(function() {
+  $.ajax({
+    url: '/startReading',
+    type: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    success: function(response) {
+      if(response.status=='ok'){
+      console.log('Serial read started.');
+      window.location.href = response.redirect;
+      }
+    },
+    error: function(xhr, status, error) {
+      console.error('Error starting serial read:', error);
+    }
+  });
+});
+
+
+// function navigateToMedicineInterface(data) {
+ 
+//   window.location.href = '/medicineInterface?data=' + encodeURIComponent(JSON.stringify(data));
+// }
+
+
+
+// $.ajax({
+//     type: 'POST',
+//     url: '/login',
+//     contentType: 'application/json',
+//     dataType: 'json',
+    
+//     data: JSON.stringify({
+//       username,
+//       password
+//     }),
+//     success: function(result) {
+//       if (result.status === 'ok') {
+//         console.log('Got the token: ', result.data);
+//         localStorage.setItem('token', result.data);
+//         alert('Success');
+//         window.location.href = result.redirect;
+//       } else {
+//         alert(result.error);
+//       }
+//     },
+//   });
+
+
+    </script>
+</body>
+</html>
