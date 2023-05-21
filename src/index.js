@@ -82,8 +82,9 @@ app.post("/login_M",async (req,res)=>{
 
 })
 
-// app.post("/login_D",async (req,res)=>{
-    
+ app.post("/login_D",async (req,res)=>{
+
+      res.render("form_D");
 //     try{
 //         const check=await collection.findOne({username:req.body.username})
 //         if(check.category==="D"){
@@ -102,7 +103,9 @@ app.post("/login_M",async (req,res)=>{
 //         res.send("Wrong username or password")
 //     }
 
-// // })
+})
+
+
 
 // app.post("/login_RB",async (req,res)=>{
     
@@ -171,19 +174,86 @@ SerialPort.list().then((ports) => {
   }
 });
 
+const CheckpointidSchema=new mongoose.Schema({
+  checkpointid:String,
 
-let port;
+
+},{timestamps:true});
+// const TimestampSchema={
+//   timestamp:String,
 
 
-app.post("/startReading", (req, res) => {
-  startScanning(req, res); 
+// };
+const CheckpointNameSchema=new mongoose.Schema({
+  checkpointname:String,
+  
+
+},{timestamps:true});
+
+
+
+const checkpointidmdl=mongoose.model("Checkpointid",CheckpointidSchema);
+const checkpointnamemdl=mongoose.model("Checkpointname",CheckpointNameSchema);
+// const timestampmdl=mongoose.model("Timestamp",TimestampSchema);
+
+const item1 =new checkpointnamemdl({
+  checkpointname: "deafult"
+});
+const defaultitems=[item1];
+
+const medicineSchema=new mongoose.Schema({
+  rfid:String,
+    medicine_name:{
+      type:String,
+      required:true
+    },
+    Batch_num:{
+      type:Number,
+      required:true},
+
+
+    manufacture_date:{
+      type:String,
+      required:true
+    },
+    expiry_date:{
+      type:String,
+      required:true
+    },
+    manufacture_name:{
+      type:String,
+      required:true
+    },
+    manufacture_id:{
+      type:String,
+      required:true
+    },
+    lastcheckingpoint_name:[CheckpointNameSchema],
+    lastcheckingpoint_id:[CheckpointidSchema],
+    // timestamp:[TimestampSchema]
+  
+
 });
 
-function startScanning(req, res) {
-  rfidExtract(req, res);
+const Medicine=mongoose.model("Medicine",medicineSchema);
+
+
+
+
+
+let port;
+//for manufacture
+
+app.post("/startReading", (req, res) => {
+  console.log("i am in startreading");
+  startScanningManufac(req, res); 
+});
+
+function startScanningManufac(req, res) {
+  rfidExtractManufac(req, res);
 }
 
-function rfidExtract(req, res) {
+function rfidExtractManufac(req, res) {
   console.log("Scanning for RFID...");
    port = new SerialPort({
     path: arduinoPort_path,
@@ -196,19 +266,31 @@ function rfidExtract(req, res) {
   parser.on("data", function (data) {
      arduinorfid = data.trim();
     console.log(`RFID detected: ${arduinorfid}`);
-  
-    closePort(req, res, port);
+    const list = new Medicine({
+      rfid: arduinorfid.replace(/\0/g, ''),
+      medicine_name: "default",
+      Batch_num:0,
+      manufacture_date:"default",
+      expiry_date:"default",
+      manufacture_name: "default",
+      manufacture_id: "default",
+      lastcheckingpoint_name:defaultitems,
+      lastcheckingpoint_id:defaultitems,
+      // timestamp:defaultitems
+    });
+    list.save();
+    closePortmanufac(req, res, port);
   });
 }
 
-function closePort(req, res, port) {
+function closePortmanufac(req, res, port) {
   if (port && !port.closed) {
     port.close(function (err) {
       if (err) {
         console.error("Error closing port:", err);
       } else {
         console.log("Port closed successfully");
-        return res.json({status:'ok' , redirect:"/medicineInterface"});
+        return res.json({status:'ok' , redirect:"/medicineInterface_M"});
       }
     });
   }
@@ -236,21 +318,50 @@ function closePortforother() {
 }
 
 
-const medicineSchema=new mongoose.Schema({
-  rfid:String,
-    medicine_name:String,
-    Batch_num:Number,
-    manufacture_date:String,
-    expiry_date:String,
-    manufacture_name:String,
-    manufacture_id:String,
-    lastcheckingpoint_name:String,
-    lastcheckingpoint_id:String,
-    timestamp:String
+//for distributor
 
+app.post("/startReadingDtbr", (req, res) => {
+  startScanningDtbr(req, res); 
 });
 
-const Medicine=mongoose.model("Medicine",medicineSchema);
+function startScanningDtbr(req, res) {
+  rfidExtractDtbr(req, res);
+}
+
+function rfidExtractDtbr(req, res) {
+  console.log("Scanning for RFID...");
+   port = new SerialPort({
+    path: arduinoPort_path,
+    baudRate: 9600,
+  });
+
+  const parser = new ReadlineParser();
+  port.pipe(parser);
+
+  parser.on("data", function (data) {
+     arduinorfid = data.trim();
+    console.log(`RFID detected: ${arduinorfid}`);
+    closePortDtbr(req, res, port);
+  });
+}
+
+function closePortDtbr(req, res, port) {
+  if (port && !port.closed) {
+    port.close(function (err) {
+      if (err) {
+        console.error("Error closing port:", err);
+      } else {
+        console.log("Port closed successfully");
+        return res.json({status:'ok' , redirect:"/medicineInterface_D"});
+      }
+    });
+  }
+}
+
+
+
+
+
 
 
 // const med=new Medicine({
@@ -295,30 +406,8 @@ const Medicine=mongoose.model("Medicine",medicineSchema);
 // })
 
 
-app.get("/medicineInterface", async (req, res) => {
+app.get("/medicineInterface_M", async (req, res) => {
  
-//   if(arduinorfid.trim()==="A50310AD Vicodin"){
-
-//     console.log("true")
-//   }
-//   else{
-//     var check="A50310AD Vicodin";
-//     console.log(check.length);
-//     console.log(arduinorfid.length);
-//     console.log(arduinorfid.trim().length);
-//     console.log(arduinorfid);
-// console.log("false");
-//   }
-// if (arduinorfid.replace(/\s+/g, '') === "A50310ADVicodin") {
-//   console.log("true");
-// } else {
-//   console.log(arduinorfid.replace(/\s+/g, '').length);
-//   console.log(arduinorfid.replace(/\s+/g, ''));
-//   console.log("false");
-// }
-
-  // console.log(typeof(arduinorfid));
-
   if (!arduinorfid) {
     // If the arduinorfid is not set, render an error page or redirect to the previous page
     console.log("errorPage");
@@ -328,17 +417,143 @@ app.get("/medicineInterface", async (req, res) => {
   try {
     const lists = await Medicine.find({ rfid: arduinorfid.replace(/\0/g, '') });
     console.log(lists);
-    console.log(lists[0].medicine_name);
-
-    res.render("medicineInterface",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+    console.log(lists[0].rfid);
+    res.render("medicineInterface_M",{packagingid:lists[0].rfid});
+    // res.render("medicineInterface_M",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
   } catch (err) {
     console.error(err);
     console.log("errorPage");
   }
 });
 
+app.get("/medicineInterface_D", async (req, res) => {
+ 
+  if (!arduinorfid) {
+    // If the arduinorfid is not set, render an error page or redirect to the previous page
+    console.log("errorPage");
+    return;
+  }
+
+  try {
+    const lists = await Medicine.find({ rfid: arduinorfid.replace(/\0/g, '') });
+    console.log(lists);
+    // console.log(lists[0].rfid);
+    res.render("medicineInterface_D",{packagingid:lists[0].rfid,medicinename:lists[0].medicine_name,batchnumber:lists[0].Batch_num,manufacturingdate:lists[0].manufacture_date,expdate:lists[0].expiry_date,mfgname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+    // res.render("medicineInterface_M",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+  } catch (err) {
+    console.error(err);
+    console.log("errorPage");
+  }
+});
+
+// app.get("/medicineInterface_M", async (req, res) => {
+ 
+//   if (!arduinorfid) {
+//     // If the arduinorfid is not set, render an error page or redirect to the previous page
+//     console.log("errorPage");
+//     return;
+//   }
+
+//   try {
+//     const lists = await Medicine.find({ rfid: arduinorfid.replace(/\0/g, '') });
+//     console.log(lists);
+//     console.log(lists[0].medicine_name);
+//     res.render("medicineInterface_M",{packagingid:lists[0].rfid});
+//     // res.render("medicineInterface_M",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+//   } catch (err) {
+//     console.error(err);
+//     console.log("errorPage");
+//   }
+// });
+app.post('/manufacturesubmit', (req, res) => {
+  const { medName, batchNo, mfgDate, expDate, mfgName, mfgId, nextCheckName, nextCheckId } = req.body;
+
+  // Perform any necessary validations or data processing
+  // You can access the individual properties from the request body
+
+  console.log('Medicine Name:', medName);
+  console.log('Batch Number:', batchNo);
+  console.log('Manufacture Date:', mfgDate);
+  console.log('Expiry Date:', expDate);
+  console.log('Manufacturer Name:', mfgName);
+  console.log('Manufacturer ID:', mfgId);
+  console.log('Next Checkpoint Name:', nextCheckName);
+  console.log('Next Checkpoint ID:', nextCheckId);
+  // console.log('Timestamp:', nextCheckTime);
+
+  // Save the data to a database or perform other actions
+  Medicine.findOne({ rfid: arduinorfid.replace(/\0/g, '') }).then(function(foundList){
+    console.log(foundList);
+    const chkpntname = new checkpointnamemdl({
+      checkpointname:nextCheckName
+    })
+    
+    const chkpntid=new checkpointidmdl({
+checkpointid:nextCheckId
+    })
+  
+    foundList.medicine_name=medName;
+    foundList.Batch_num=batchNo;
+    foundList.manufacture_date=mfgDate;
+    foundList.expiry_date=expDate;
+    foundList.manufacture_name=mfgName;
+    foundList.manufacture_id=mfgId;
+    foundList.lastcheckingpoint_name.push(chkpntname);
+    foundList.lastcheckingpoint_id.push(chkpntid);
+    // foundList.timestamp.push(tmstm);
+
+    
+    foundList.save().then(() => {
+      console.log('Document updated successfully');
+    }).catch(error => {
+      console.error('Error saving document:', error);
+    });
+    arduinorfid="";
+    
+  });
+  // Send a response back to the client
+  res.json({ message: 'Data received successfully' });
+});
 
 
+app.post('/manufacturesubmit_D', (req, res) => {
+  const {  nextCheckName, nextCheckId } = req.body;
+
+  // Perform any necessary validations or data processing
+  // You can access the individual properties from the request body
+
+  console.log('Next Checkpoint Name:', nextCheckName);
+  console.log('Next Checkpoint ID:', nextCheckId);
+  // console.log('Timestamp:', nextCheckTime);
+
+  // Save the data to a database or perform other actions
+  Medicine.findOne({ rfid: arduinorfid.replace(/\0/g, '') }).then(function(foundList){
+    console.log(foundList);
+    const chkpntname = new checkpointnamemdl({
+      checkpointname:nextCheckName
+    })
+    
+    const chkpntid=new checkpointidmdl({
+checkpointid:nextCheckId
+    })
+  
+    
+    foundList.lastcheckingpoint_name.push(chkpntname);
+    foundList.lastcheckingpoint_id.push(chkpntid);
+    // foundList.timestamp.push(tmstm);
+
+    
+    foundList.save().then(() => {
+      console.log('Document updated successfully');
+    }).catch(error => {
+      console.error('Error saving document:', error);
+    });
+    arduinorfid="";
+    
+  });
+  // Send a response back to the client
+  res.json({ message: 'Data received successfully' });
+});
 
 
 
