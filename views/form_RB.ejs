@@ -5,8 +5,152 @@
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Document</title>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
+
+    <style>
+      .pulse {
+          position: absolute;
+          top: 35%;
+          left: 40%;
+          transform: translate(-505, -50%);
+          width: 100px;
+          height: 100px;
+          background: #71d7ed;
+          border: 2px solid #71d7ed;
+          border-radius: 50%;
+          box-sizing: border-box;
+          box-shadow: 0 0 0 36px #2cd7d5,
+                  0 0 0 40px #71d7ed;
+      }
+
+      .pulse:before,
+      .pulse:after {
+          content: '';
+          position: absolute;
+          left: -30px;
+          top: -30px;
+          right: -30px;
+          bottom: -30px;
+          border: 2px solid #71d7ed;
+          border-radius: 50%;
+          animation: animate 5s linear infinite
+      }
+
+      .pulse:after {
+          animation-delay: 2s;
+      }
+      
+      .circle-crop {
+        bottom: 27px;
+    right: 27px;
+        width: 150px;
+    height: 150px;
+    position: relative;
+    border-radius: 50%;
+    overflow: hidden;
+    display: flex;
+    justify-content: left;
+    align-items: end;
+}
+      
+
+      .circle-crop img {
+          width: 100%;
+          height: 100%;
+          object-fit: cover;
+      }
+
+      @keyframes animate {
+          0% {
+              transform: scale(2.0);
+          }
+
+          100% {
+              transform: scale(0.7);
+          }
+      }
+      
+  </style>
 </head>
 <body>
-    <h1>Regulatory Body Form or interface</h1>
+    <div>
+      <div class="pulse">
+        <div class="circle-crop">
+          <img src="images/card_scan.jpg" alt="Image" />
+        </div>
+      </div>
+    </div>
+    
+
+    
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+    <script>
+        $(document).ready(function() {
+  $.ajax({
+    url: '/startReadingRgl',
+    type: 'POST',
+    contentType: 'application/json',
+    dataType: 'json',
+    success: function(response) {
+      if(response.status=='ok'){
+      console.log('Serial read started.');
+      window.location.href = response.redirect;
+      }
+    },
+    error: function(xhr, status, error) {
+      console.error('Error starting serial read:', error);
+    }
+  });
+});
+
+
+// function navigateToMedicineInterface(data) {
+ 
+//   window.location.href = '/medicineInterface?data=' + encodeURIComponent(JSON.stringify(data));
+// }
+
+
+
+// $.ajax({
+//     type: 'POST',
+//     url: '/login',
+//     contentType: 'application/json',
+//     dataType: 'json',
+    
+//     data: JSON.stringify({
+//       username,
+//       password
+//     }),
+//     success: function(result) {
+//       if (result.status === 'ok') {
+//         console.log('Got the token: ', result.data);
+//         localStorage.setItem('token', result.data);
+//         alert('Success');
+//         window.location.href = result.redirect;
+//       } else {
+//         alert(result.error);
+//       }
+//     },
+//   });
+
+
+    </script>
 </body>
 </html>

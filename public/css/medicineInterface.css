@@ -20,7 +20,7 @@ body {
 
 .box-area {
   width: 600px;
-  height: 720px;
+  height: auto;
 }
 
 /*------------ Right box ------------*/
@@ -62,3 +62,8 @@ body {
   display: inline;
   justify-content: space-between;
 }
+.table-container {
+  max-height: 400px; /* Set the desired height */
+  overflow-y: scroll; /* Enable vertical scrolling */
+}
+

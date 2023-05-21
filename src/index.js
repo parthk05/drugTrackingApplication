@@ -27,6 +27,10 @@ app.use((req, res, next) => {
 app.get("/",(req,res)=>{
     res.render("home");
 })
+app.post('/cancelbtn', (req, res) => {
+  
+  res.redirect('/');
+});
 
 app.get("/login_M.hbs",(req,res)=>{
     res.render("login_M")
@@ -56,29 +60,51 @@ app.get("/signup",(req,res)=>{
 //     res.render("form_M")
 // })
 
+//login details
+
+// const LogInSchema=new mongoose.Schema({
+//   username:{
+//       type:String,
+//       unique:true,
+//       required:true
+//   },
+//   password:{
+//       type:String,
+//       required:true
+//   },
+//   category:{
+//       type:String,
+//       enum: ['M', 'D', 'RB'], 
+//       required: true
+//   }
+// })
+
+// const collection=new mongoose.model("Collection1",LogInSchema)
+
 app.post("/login_M",async (req,res)=>{
   
-    res.render("form_M");
+  res.render("form_M");
    
-
+  // console.log(req.body);
     
-    // try{
-    //     const check=await collection.findOne({username:req.body.username})
-    //     if(check.category==="M"){
-    //         if(check.password===req.body.password){
-    //             res.render("form_M")
-    //         }
-    //         else{
-    //             res.send("Wrong Password")
-    //         }
-    //     }
-    //     else{
-    //         res.send("No such Manufacturer account")
-    //     }
-    // }
-    // catch{
-    //     res.send("Wrong username or password")
-    // }
+  //   try{
+  //       const check=await collection.findOne({username:req.body.username})
+  //       if(check.category=="M"){
+  //           if(check.password==req.body.password){
+  //             res.render("form_M");
+  //           }
+  //           else{
+  //             console.log(req.body);
+  //               res.send("Wrong Password")
+  //           }
+  //       }
+  //       else{
+  //           res.send("No such Manufacturer account")
+  //       }
+  //   }
+  //   catch{
+  //       res.send("Wrong username or password")
+  //   }
 
 })
 
@@ -107,27 +133,27 @@ app.post("/login_M",async (req,res)=>{
 
 
 
-// app.post("/login_RB",async (req,res)=>{
-    
-//     try{
-//         const check=await collection.findOne({username:req.body.username})
-//         if(check.category==="RB"){
-//             if(check.password===req.body.password){
-//                 res.render("form_RB")
-//             }
-//             else{
-//                 res.send("Wrong Password")
-//             }
-//         }
-//         else{
-//             res.send("No such Regulatory Body account")
-//         }
-//     }
-//     catch{
-//         res.send("Wrong username or password")
-//     }
+app.post("/login_RB",async (req,res)=>{
+    res.render("form_RB");
+    // try{
+    //     const check=await collection.findOne({username:req.body.username})
+    //     if(check.category==="RB"){
+    //         if(check.password===req.body.password){
+    //             res.render("form_RB")
+    //         }
+    //         else{
+    //             res.send("Wrong Password")
+    //         }
+    //     }
+    //     else{
+    //         res.send("No such Regulatory Body account")
+    //     }
+    // }
+    // catch{
+    //     res.send("Wrong username or password")
+    // }
 
-// })
+})
 
 app.listen(3000,()=>{
     console.log("port connected")
@@ -140,6 +166,7 @@ const { ReadlineParser } = require("@serialport/parser-readline");
 var arduinoPort = "";
 var arduinoPort_path="";
 var arduinorfid="";
+var portstatus=false;
 
 
 
@@ -197,7 +224,7 @@ const checkpointnamemdl=mongoose.model("Checkpointname",CheckpointNameSchema);
 // const timestampmdl=mongoose.model("Timestamp",TimestampSchema);
 
 const item1 =new checkpointnamemdl({
-  checkpointname: "deafult"
+  checkpointname: "WHEN SCANNED FOR FIRST TIME"
 });
 const defaultitems=[item1];
 
@@ -255,6 +282,7 @@ function startScanningManufac(req, res) {
 
 function rfidExtractManufac(req, res) {
   console.log("Scanning for RFID...");
+  portstatus=true;
    port = new SerialPort({
     path: arduinoPort_path,
     baudRate: 9600,
@@ -274,8 +302,7 @@ function rfidExtractManufac(req, res) {
       expiry_date:"default",
       manufacture_name: "default",
       manufacture_id: "default",
-      lastcheckingpoint_name:defaultitems,
-      lastcheckingpoint_id:defaultitems,
+      
       // timestamp:defaultitems
     });
     list.save();
@@ -290,6 +317,7 @@ function closePortmanufac(req, res, port) {
         console.error("Error closing port:", err);
       } else {
         console.log("Port closed successfully");
+        portstatus=false;
         return res.json({status:'ok' , redirect:"/medicineInterface_M"});
       }
     });
@@ -305,7 +333,8 @@ app.post('/api/closePort', function(req, res) {
 
 
 function closePortforother() {
-  if (port && !port.closed) {
+  console.log(portstatus);
+  if (portstatus && port && !port.closed) {
     port.close(function (err) {
       if (err) {
         console.error("Error closing port:", err);
@@ -330,6 +359,7 @@ function startScanningDtbr(req, res) {
 
 function rfidExtractDtbr(req, res) {
   console.log("Scanning for RFID...");
+  portstatus=true;
    port = new SerialPort({
     path: arduinoPort_path,
     baudRate: 9600,
@@ -346,18 +376,59 @@ function rfidExtractDtbr(req, res) {
 }
 
 function closePortDtbr(req, res, port) {
-  if (port && !port.closed) {
+  if (portstatus && port && !port.closed) {
     port.close(function (err) {
       if (err) {
         console.error("Error closing port:", err);
       } else {
         console.log("Port closed successfully");
+        portstatus=false;
         return res.json({status:'ok' , redirect:"/medicineInterface_D"});
       }
     });
   }
 }
 
+//for regulatory body
+app.post("/startReadingRgl", (req, res) => {
+  startScanningRgl(req, res); 
+});
+
+function startScanningRgl(req, res) {
+  rfidExtractRgl(req, res);
+}
+
+function rfidExtractRgl(req, res) {
+  console.log("Scanning for RFID...");
+  portstatus=true;
+   port = new SerialPort({
+    path: arduinoPort_path,
+    baudRate: 9600,
+  });
+
+  const parser = new ReadlineParser();
+  port.pipe(parser);
+
+  parser.on("data", function (data) {
+     arduinorfid = data.trim();
+    console.log(`RFID detected: ${arduinorfid}`);
+    closePortRgl(req, res, port);
+  });
+}
+
+function closePortRgl(req, res, port) {
+  if (portstatus && port && !port.closed) {
+    port.close(function (err) {
+      if (err) {
+        console.error("Error closing port:", err);
+      } else {
+        console.log("Port closed successfully");
+        portstatus=false;
+        return res.json({status:'ok' , redirect:"/medicineInterface_R"});
+      }
+    });
+  }
+}
 
 
 
@@ -439,6 +510,27 @@ app.get("/medicineInterface_D", async (req, res) => {
     console.log(lists);
     // console.log(lists[0].rfid);
     res.render("medicineInterface_D",{packagingid:lists[0].rfid,medicinename:lists[0].medicine_name,batchnumber:lists[0].Batch_num,manufacturingdate:lists[0].manufacture_date,expdate:lists[0].expiry_date,mfgname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+    // res.render("medicineInterface_M",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
+  } catch (err) {
+    console.error(err);
+    console.log("errorPage");
+  }
+});
+
+
+app.get("/medicineInterface_R", async (req, res) => {
+ 
+  if (!arduinorfid) {
+    // If the arduinorfid is not set, render an error page or redirect to the previous page
+    console.log("errorPage");
+    return;
+  }
+
+  try {
+    const lists = await Medicine.find({ rfid: arduinorfid.replace(/\0/g, '') });
+    console.log(lists);
+    // console.log(lists[0].rfid);
+    res.render("medicineInterface_R",{packagingid:lists[0].rfid,medicinename:lists[0].medicine_name,batchnumber:lists[0].Batch_num,manufacturingdate:lists[0].manufacture_date,expdate:lists[0].expiry_date,mfgname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id,checkpointnamelist:lists[0].lastcheckingpoint_name,checkpointidlist:lists[0].lastcheckingpoint_id});
     // res.render("medicineInterface_M",{medicinename:lists[0].medicine_name,batchnum:lists[0].Batch_num,manufacdate:lists[0].manufacture_date,expirydate:lists[0].expiry_date,manufacname:lists[0].manufacture_name,manufacid:lists[0].manufacture_id});
   } catch (err) {
     console.error(err);

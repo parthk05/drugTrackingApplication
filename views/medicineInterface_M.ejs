@@ -36,7 +36,7 @@
               
               <hr class="line" />
             </div>
-            <label class="col" for="nextCheckTime">Packaging Id</label>
+            <label class="col" for="packid">Packaging Id</label>
 
             <div class="input-group mb-3">
               <input
@@ -50,7 +50,7 @@
             </div>
             <div class="row align-items-start">
               <label class="col" for="medName">Medicine Name</label>
-              <label class="col" for="mfgDate">Batch Number</label>
+              <label class="col" for="batchNo">Batch Number</label>
             </div>
 
             <div class="input-group mb-3">
@@ -82,7 +82,7 @@
                 type="text"
                 class="form-control form-control-lg bg-light fs-6"
                 value=""
-                placeholder=""
+                placeholder="MM/YYYY"
         
               />
               <input
@@ -90,7 +90,7 @@
                 type="text"
                 class="form-control form-control-lg bg-light fs-6"
                 value=""
-                placeholder=""
+                placeholder="MM/YYYY"
             
               />
             </div>
@@ -164,7 +164,7 @@
     <script>
         // Get the submit button element
         const submitButton = document.getElementById('reg-form')
-        const cancelButton = document.getElementById('cancel_btn')
+       
 
 // Attach event listener to the submit button
 submitButton.addEventListener('submit', handleFormSubmit);
@@ -193,23 +193,59 @@ function handleFormSubmit(event) {
     nextCheckId,
     // nextCheckTime
   };
-  fetch('/manufacturesubmit', {
+  $.ajax({
+  url: '/manufacturesubmit',
+  type: 'POST',
+  dataType: 'json',
+  contentType: 'application/json',
+  data: JSON.stringify(formData),
+  success: function(data) {
+    window.location.href ="/";
+    // Handle the response from the server
+    console.log('Response:', data);
+  },
+  error: function(error) {
+    // Handle any errors that occurred during the request
+    console.error('Error:', error);
+  }
+});
+  // fetch('/manufacturesubmit', {
+  //   method: 'POST',
+  //   headers: {
+  //     'Content-Type': 'application/json'
+  //   },
+  //   body: JSON.stringify(formData)
+  // })
+  //   .then(response => response.json())
+  //   .then(data => {
+  //     // Handle the response from the server
+  //     console.log('Response:', data);
+  //   })
+  //   .catch(error => {
+  //     // Handle any errors that occurred during the request
+  //     console.error('Error:', error);
+  //   });
+}
+
+
+
+const cancelButton = document.getElementById('cancel_btn')
+        cancelButton.addEventListener('click', handlecancel);
+        function handlecancel(event) {
+          $.ajax({
+    url: '/cancelbtn',
     method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify(formData)
-  })
-    .then(response => response.json())
-    .then(data => {
+    success: function(response) {
       // Handle the response from the server
-      console.log('Response:', data);
-    })
-    .catch(error => {
+      window.location.href = '/';
+      console.log('Response:', response);
+    },
+    error: function(error) {
       // Handle any errors that occurred during the request
       console.error('Error:', error);
-    });
-}
+    }
+  });
+        }
     </script>
     
   </body>

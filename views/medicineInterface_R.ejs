@@ -15,9 +15,9 @@
     <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.6.4/jquery.min.js"></script>
   </head>
   <body>
-    <form action="/manufacturesubmit" class="form" id="reg-form" method="post">
-    <div
-      class="container d-flex justify-content-center align-items-center min-vh-100"
+    <form action="/manufacturesubmit" class="form" id="regulatory_body" >
+    <div 
+      class="container d-flex justify-content-center align-items-center min-vh-100" id="maindiv"
     >
       <!----------------------- Login Container -------------------------->
 
@@ -37,7 +37,6 @@
               <hr class="line" />
             </div>
             <label class="col" for="packid">Packaging Id</label>
-
             <div class="input-group mb-3">
               <input
                 id="packid"
@@ -119,17 +118,61 @@
               />
             </div>
             
+            
 
             
-            
-            <div class="row align-items-start">
-              <label class="col" for="lastCheckName"
-                >Next checkpoint name</label
-              >
-              <label class="col" for="lastCheckId">Next checkpoint id</label>
+
+            <div class="container">
+              <div class="row">
+                <div class="col-md-12">
+                  <div class="table-responsive">
+                    <table class="table" id="myTable">
+                      <thead>
+                        <tr>
+                          <th>Checkpoint Name</th>
+                          <th>Checkpoint ID</th>
+                          <th>Time stamp</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        
+      <% for (var i=0;i<checkpointnamelist.length;i++){ %>
+        <tr>
+          <td><%=  checkpointnamelist[i].checkpointname  %></td>
+          <td><%=  checkpointidlist[i].checkpointid  %></td>
+          <td><%=  checkpointnamelist[i].createdAt  %></td>
+        </tr>
+     <% } %>
+                        
+                       
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
             </div>
+            
+            <div class="row container">
+              
+              <button type="button" id="cancel_btn" class="col btn btn-primary">Cancel</button>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </form>
+  
+  
+  
+  
+  
+  
+  
+  
 
-            <div class="input-group mb-3">
+
+
+            <!-- <div class="input-group mb-3">
               <input
                 id="nextCheckname"
                 type="text"
@@ -143,7 +186,7 @@
                 class="form-control form-control-lg bg-light fs-6"
                 placeholder=""
               />
-            </div>
+            </div> -->
             <!-- <label class="col" for="nextCheckTime">Time Stamp</label> -->
 
             <!-- <div class="input-group mb-3">
@@ -154,10 +197,7 @@
                 placeholder=""
               />
             </div> -->
-            <div class="row container">
-              <button type="submit" class="col btn btn-primary">Submit</button>
-              <button type="button" id="cancel_btn" class="col btn btn-primary">Cancel</button>
-            </div>
+           
           </div>
         </div>
       </div>
@@ -165,62 +205,7 @@
     </form>
     <script>
         // Get the submit button element
-        const submitButton = document.getElementById('reg-form')
-        
-
-// Attach event listener to the submit button
-submitButton.addEventListener('submit', handleFormSubmit);
-// Event handler for form submission
-function handleFormSubmit(event) {
-  event.preventDefault(); // Prevent the default form submission behavior
-
-  // Get the values from the input fields
-  
-  const nextCheckName = document.getElementById('nextCheckname').value;
-  const nextCheckId = document.getElementById('nextCheckId').value;
-//   const nextCheckTime = document.getElementById('nextCheckTime').value;
-  const formData = {
- 
-    nextCheckName,
-    nextCheckId,
-    // nextCheckTime
-  };
-  $.ajax({
-  url: '/manufacturesubmit_D',
-  type: 'POST',
-  dataType: 'json',
-  contentType: 'application/json',
-  data: JSON.stringify(formData),
-  success: function(data) {
-    window.location.href ="/";
-    // Handle the response from the server
-    console.log('Response:', data);
-  },
-  error: function(error) {
-    // Handle any errors that occurred during the request
-    console.error('Error:', error);
-  }
-});
-  // fetch('/manufacturesubmit_D', {
-  //   method: 'POST',
-  //   headers: {
-  //     'Content-Type': 'application/json'
-  //   },
-  //   body: JSON.stringify(formData)
-  // })
-  //   .then(response => response.json())
-  //   .then(data => {
-  //     // Handle the response from the server
-  //     console.log('Response:', data);
-  //   })
-  //   .catch(error => {
-  //     // Handle any errors that occurred during the request
-  //     console.error('Error:', error);
-  //   });
-}
-
-
-const cancelButton = document.getElementById('cancel_btn')
+        const cancelButton = document.getElementById('cancel_btn')
         cancelButton.addEventListener('click', handlecancel);
         function handlecancel(event) {
           $.ajax({
@@ -237,6 +222,20 @@ const cancelButton = document.getElementById('cancel_btn')
     }
   });
         }
+
+// Attach event listener to the submit button
+var table = document.getElementById("myTable");
+var form = document.getElementById("regulatory_body");
+
+var maindiv = document.getElementById("maindiv");
+function updateForm() {
+  var tableHeight = table.offsetHeight;
+  form.style.height = tableHeight + "px";
+  cancelButton.style.marginTop = tableHeight + "px";
+  maindiv.style.height=tableHeight +"px";
+}
+table.addEventListener("DOMNodeInserted", updateForm);
+// updateForm();
     </script>
     
   </body>
